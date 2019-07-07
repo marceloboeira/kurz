@@ -1,6 +1,3 @@
-# Important
-# Remember to update docker/.dockerignore for every change here (if necessary)
-
 # Rust
 api/target
 api/**/*.rs.bk
