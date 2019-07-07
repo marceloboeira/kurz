@@ -1,0 +1,34 @@
+# Reference:
+# https://github.com/aelsabbahy/goss/blob/master/docs/manual.md
+
+file:
+  # Kurz Binary
+  /home/kurz:
+    exists: true
+    mode: "0755"
+    filetype: file
+  # Statically Compile Assets
+  /home/ui/index.html:
+    exists: true
+    mode: "0644"
+    filetype: file
+  /home/ui/assets/application.js:
+    exists: true
+    mode: "0644"
+    filetype: file
+port:
+  # TCP/HTTP Port
+  tcp:8000:
+    listening: true
+    ip:
+    - 0.0.0.0
+process:
+  # Kurz process
+  kurz:
+    running: true
+http:
+  # Kurtz root endpoint
+  http://localhost:8000:
+    status: 200
+    timeout: 1000
+  # TODO add http health route check
