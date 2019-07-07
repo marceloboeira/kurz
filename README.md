@@ -6,6 +6,19 @@
 * `:8000/` - root page, it renders the `dist/index.html`.
 * `:8000/api/hello` - sample endpoint for testing purposes.
 
+# Contributing
+
+TODO: Add a contributing guide
+
+## Available commands
+
+```
+help         Lists the available commands
+test-all     Tests everything, EVERYTHING
+docker-build Builds the core docker image compiling source for Rust and Elm
+docker-test  Tests the latest docker generated image
+```
+
 ## Structure
 
 ```
@@ -18,6 +31,8 @@
 │       └── main.rs - Rust application entrypoint
 ├── docker - Docker build root folder
 │   └── Dockerfile
+│   └── .dockerignore - Ignore file for docker context
+│   └── goss.yaml - Test declaration for the release docker image
 └── ui - Elm application root folder
     ├── dist
     │   ├── assets
@@ -52,4 +67,10 @@ home/
     └── index.html - static html file
 ```
 
-When you access `kurz/` it renders the index.html file.
+When you access `kurz:8000/` it renders the `index.html` file.
+
+#### Docker Testing
+
+We're using `dgoss` to test our docker-images, see: https://github.com/aelsabbahy/goss/.
+
+Check `docker/goss.yaml` for more info.
