@@ -3,16 +3,16 @@
 
 file:
   # Kurz Binary
-  /home/kurz:
+  /home/kurz/kurz:
     exists: true
     mode: "0755"
     filetype: file
   # Statically Compile Assets
-  /home/ui/index.html:
+  /home/kurz/ui/index.html:
     exists: true
     mode: "0644"
     filetype: file
-  /home/ui/assets/application.js:
+  /home/kurz/ui/assets/application.js:
     exists: true
     mode: "0644"
     filetype: file

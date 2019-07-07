@@ -13,7 +13,7 @@ ARG ELM_TARGET_FOLDER=$ELM_ROOT/dist
 ARG ELM_TARGET_FILE=$ELM_TARGET_FOLDER/assets/application.js
 
 ARG ALPINE_VERSION=3.9.4
-ARG RELEASE_HOME=/home
+ARG RELEASE_HOME=/home/kurz
 ARG RELEASE_ASSETS=$RELEASE_HOME/ui
 ARG PORT=8000
 
@@ -44,7 +44,7 @@ RUN cargo build --bins --release --target $RUST_TARGET
 RUN rm $RUST_KURZ_ROOT/src/*.rs
 COPY $RUST_SOURCE/src $RUST_KURZ_ROOT/src
 
-# Deletes dummy compiled binary
+# Delete dummy compiled binary
 RUN rm $RUST_TARGET_FOLDER/deps/kurz*
 
 # Rebuild with real sources
@@ -83,7 +83,10 @@ COPY --from=rust-build $RUST_TARGET_BIN .
 # Copy Elm artifacts
 COPY --from=elm-build $ELM_TARGET_FOLDER $RELEASE_ASSETS/
 
+# Add release folder to the Path
+ENV PATH $RELEASE_HOME:$PATH
+
 # Expose HTTP Port
 EXPOSE $PORT
 
-CMD ["./kurz"]
+CMD ["kurz"]
