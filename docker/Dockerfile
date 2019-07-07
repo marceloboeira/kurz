@@ -39,6 +39,10 @@ RUN elm make src/Application.elm --output dist/assets/application.js --optimize
 ########################################
 ########## Release Image ###############
 ########################################
+# TODO test the release this docker-image
+# TODO tag this docker image
+# TODO add maintainer to this docker image
+# TODO publish this docker image
 FROM alpine:3.9.4
 
 WORKDIR /home
