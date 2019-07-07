@@ -4,9 +4,6 @@
 ########################################
 FROM ekidd/rust-musl-builder:nightly-2019-06-08 AS rust-build
 
-# Add alpine target
-RUN rustup target add x86_64-unknown-linux-musl
-
 # Re-own home
 # https://github.com/emk/rust-musl-builder#making-static-releases-with-travis-ci-and-github
 RUN sudo chown -R rust:rust /home
