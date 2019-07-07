@@ -13,12 +13,12 @@ fn hello() -> &'static str {
 }
 
 fn main() {
+    // TODO make it possible to specify UI path
     let ui_path = match env::current_exe() {
         Ok(p) => p.parent().unwrap().join("ui/"),
         Err(_) => process::exit(0x0100),
     };
 
-    println!("{:?}", ui_path);
     rocket::ignite()
         .mount("/", StaticFiles::from(ui_path))
         .mount("/api", routes![hello])

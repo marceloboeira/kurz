@@ -1,6 +1,11 @@
 # 🚀 kurz
 > A URL Shortener so there are no URL Shorteners
 
+## Endpoints
+
+* `:8000/` - root page, it renders the `dist/index.html`.
+* `:8000/api/hello` - sample endpoint for testing purposes.
+
 ## Structure
 
 ```
