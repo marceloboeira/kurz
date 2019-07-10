@@ -1,5 +1,7 @@
-# 🚀 kurz
-> A URL Shortener so there are no URL Shorteners
+<p align="center">
+  <img src="https://github.com/marceloboeira/kurz/blob/master/docs/logos/github_2.png?raw=true" width="400">
+  <p align="center">A URL Shortener so there are no URL Shorteners<p>
+</p>
 
 ## Endpoints
 
