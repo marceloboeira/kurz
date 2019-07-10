@@ -23,7 +23,7 @@ docker-test  Tests the latest docker generated image
 
 ```
 ├── LICENSE - License file
-├── README.md - This file
+├── Makefile - Frequent commands/Tasks
 ├── api - Rust application root folder
 │   ├── Cargo.lock
 │   ├── Cargo.toml
@@ -33,6 +33,9 @@ docker-test  Tests the latest docker generated image
 │   └── Dockerfile
 │   └── .dockerignore - Ignore file for docker context
 │   └── goss.yaml - Test declaration for the release docker image
+├── docs
+│   ├── README.md - This file.
+│   └── logos - Logos folder
 └── ui - Elm application root folder
     ├── dist
     │   ├── assets
