@@ -79,3 +79,11 @@ When you access `kurz:8000/` it renders the `index.html` file.
 We're using `dgoss` to test our docker-images, see: https://github.com/aelsabbahy/goss/.
 
 Check `docker/goss.yaml` for more info.
+
+
+### Reference
+
+* https://blog.codinghorror.com/url-shortening-hashes-in-practice/
+* https://www.youtube.com/watch?v=JQDHz72OA3c
+* https://michiel.buddingh.eu/distribution-of-hash-values
+* https://engineering.checkr.com/introducing-flagr-a-robust-high-performance-service-for-feature-flagging-and-a-b-testing-f037c219b7d5
