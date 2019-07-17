@@ -16,9 +16,23 @@ DOCKER_TAG ?= $(AUTHOR)/$(BIN_NAME):$(VERSION)
 # Docker Testing
 DGOSS ?= `which dgoss`
 
+# Docs
+NPM ?= `which npm`
+MARKSERV ?= `which markserv`
+DOCS_PATH ?= /docs
+DOCS_PORT ?= 9090
+
 .PHONY: help
 help: ## Lists the available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: docs-install
+docs-install: ## Installs documentation-related dependencies
+	$(NPM) i -g markserv
+
+.PHONY: docs
+docs: ## Starts a local server to show docs
+	$(MARKSERV) $(DOCS_PATH) --silent false --browser true --port $(DOCS_PORT)
 
 .PHONY: docker-build
 docker-build: ## Builds the core docker image compiling source for Rust and Elm

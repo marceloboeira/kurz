@@ -13,12 +13,15 @@
 TODO: Add a contributing guide
 
 ## Available commands
+> All with Makefile
 
 ```
-help         Lists the available commands
-test-all     Tests everything, EVERYTHING
-docker-build Builds the core docker image compiling source for Rust and Elm
-docker-test  Tests the latest docker generated image
+help          Lists the available commands
+docker-build  Builds the core docker image compiling source for Rust and Elm
+docker-test   Tests the latest docker generated image
+docs-install  Installs documentation-related dependencies
+docs          Starts a local server to show docs
+test-all      Tests everything, EVERYTHING
 ```
 
 ## Structure
@@ -79,7 +82,6 @@ When you access `kurz:8000/` it renders the `index.html` file.
 We're using `dgoss` to test our docker-images, see: https://github.com/aelsabbahy/goss/.
 
 Check `docker/goss.yaml` for more info.
-
 
 ### Reference
 
