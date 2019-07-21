@@ -88,4 +88,5 @@ Check `docker/goss.yaml` for more info.
 * https://blog.codinghorror.com/url-shortening-hashes-in-practice/
 * https://www.youtube.com/watch?v=JQDHz72OA3c
 * https://michiel.buddingh.eu/distribution-of-hash-values
+* https://www.educative.io/collection/page/5668639101419520/5649050225344512/5668600916475904
 * https://engineering.checkr.com/introducing-flagr-a-robust-high-performance-service-for-feature-flagging-and-a-b-testing-f037c219b7d5
