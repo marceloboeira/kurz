@@ -5,11 +5,11 @@
 
 * [What Is a URL Shortener?](#what-is-a-url-shortener)
 * [Why You Should Create You Own?](#why-you-should-create-you-own)
-* Goals
-* Challenges
-  * URL Shortening
-  * Capacity Planning
-  * Performance
+* [Goals](#goals)
+* [Challenges](#challenges)
+  * [Short URL Generation](#short-url-generation)
+  * [Capacity Planning](#capacity-planning)
+  * [Performance](#performance)
 * Alternatives
 * Stack
 
@@ -56,11 +56,12 @@ Here are some of the challanges worth exploring:
 
 e.g.:
 
-* Reliability - "How often does the system fails? Under which conditions?"
-* Performance - "How fast can we read/write data to it?"
-* Data-Durability - "How long are URLs available for?"
-* Storage-Capacity - "How many URLs can we store?"
-* Scalability - "How/How much can I increase one of the above?"
+* Reliability - `How often does the system fails? Under which conditions?`
+* Performance - `How fast can we read/write data to it?`
+* Data-Durability - `How long are URLs available for?`
+* Storage-Capacity - `How many URLs can we store?`
+* Scalability - `How/How much can I increase one of the above?`
+* Consistency - `Operations can't violate consistency rules`
 
 Among such challenges, I have spared a few and created a priority order. This is something common when designing such applications, given that the mentioned features of a system are usually inversely proportional, or two different sides of the same coin.
 
@@ -68,45 +69,44 @@ e.g.:
 * a reliable database, that can never fail, might be really slow to ensure it will never fail.
 * a long-term file system for backups might have severe capacity or performance limitations given it must copy data multiple times to ensure its durability.
 
+## Goals
+
 First let us look at the goals, then discuss in depth what are the exact features we'll be focusing on and the challenges they bring.
 
-# Goals
-
-* Reliability - Low percentage of failures when reading/writing/redirecting
-* Performance - Fast redirects/reads/writes
+* Reliability - Low percentage of failures when reading/writing/redirecting. e.g.: what if the database goes down?
+* Performance - Fast redirects/reads/writes. e.g.: how fast URL redirection takes?
+* Consistency - Short URLs can't be overriden by new URLs. e.g.: hash collisions.
 * UX - Simple to host, to use, and to scale.
 
-On that order, we would give up UX or Performance for Reliability, for instance.
+On that order, we would give up UX or Consitency for Performance and Reliability, for instance. We'll dive into specifics later on.
 
-## Non-Goals
+### Non-Goals
 
-* Excessive number of features, e.g.: Authentication, Authorization, User Management
-* Extreme consistency, e.g.: over a huge amount of time
-* Durability -
-* Long-Term Statiscs History, e.g.: reports
+* User Management - creating different users to own URLs
+* Authentication - creating API specific keys and authentication
+* Authorization - given different roles/permissions to users
 
-Endpoints
+## Challenges
 
-```
-/$ match ->
-/api ->
-/ui -> internal user interface
+### Short URL Generation
+
+Given a resonably large URL, say:
 
 ```
+https://my-long-link.com/a-very-long/path/with/numbers/90999.html
+```
 
-## Short URL Generation
-
-Given a resonably large URL, say: "https://......"
-
-We want to share this in a more meaningful way, that being a tweet, a instant message...
+We would like to share it in a less verbose format, that being a tweet, a instant message...
 
 When we think about it, it's mainly a hash-table. A key, value tuple that has the index with the short code being the key and the value being the long url, so that we can quickly lookup them.
 
-`http://krz.io/MEd21` -> Lookup on a Hash Table -> `MEd21: https://my-long-link.com/a-very-long/path/with/numbers/90999.html`
+* `http://krz.io/MEd21`
+  * Lookup on a Hash Table
+    * `MEd21: https://my-long-link.com/a-very-long/path/with/numbers/90999.html`
 
-Yet, as [this blogpost][1] from Jeff Atwood states, creating a consistent hashing for this purpose is not that trivial.
+However, as [this blogpost][1] from Jeff Atwood states, creating a consistent hashing for this purpose is not a trivial task.
 
-One might thing, why not just use traditional hashing methods?
+Let us take a look on how traditional hashing might not be the best idea.
 
 ### Traditional Hashing
 
@@ -127,57 +127,76 @@ SHA512: 3bb12eda3c298db5de25597f54d924f2e17e78a26ad8953ed8218ee682f0bbbe9021e2f3
 ```
 > You can do that yourself [here][10]
 
+##### Idempotency
+
 One of the good parts is that such alternative is **idempotent**. Meaning that, if the content (e.g.: an URL) doesn't change, the hash won't change eithere. Hashing the word `example` with this algorithm in any computer would, or should, generate the same result.
 
-Idepotency is good on that sense, because if multiple users try to shorten the same URL, we would save space and lookup time by avoiding saving the same hash over and over. We'll discuss those in depth later on.
+Idempotency is good on that sense, because if multiple users try to shorten the same URL, we would **save space and lookup time** by avoiding saving the same hash over and over. We'll discuss those in depth later on.
+
+##### Collision Probabilities
 
 Besides that, such algorithms have [known collision probabilities][11], which guide us on figuring out the capacity and durability of the URLs. e.g.: generating 10M URLs per month, in 2 years the chance of collision will be X.
 
 If you like hashing read more about MD5 collisions [here][12] and [here][11].
 
-However, there is a deal breaker constraint, which is exactly the reason why collision probabilities are so low, it's the obvious huge length of those hashes.
+##### Length
+
+There is a deal breaker constraint with traditional hashing, which is exactly the reason why collision probabilities are so low, it's the obvious huge length of those hashes.
 
 * SHA512 always return a `512` chars long string.
 * MD5  always return a `128` chars long  string.
 
 It defeats the whole purpose, e.g.: `https://krz.io/1a79a4d60de6718e8e5b326e338ae533`
 
-Traditional Hashing doesn't help us here, even using a not so lengthy algorithm, as `CRC32` the string would have around 8 chars and the change of collision increases a lot.
+##### The Birthday Paradox
 
-8 random chars from `a-z` and `0-9` give us around 36 different chars.
+Even using a not so lengthy algorithm, as `CRC32` the string would have around 8 chars which increases the change of collision a lot.
 
-> Straight
+A naive attempt to calculate the collision would be to look at the amount of possibilities by the amount of permutations, that being:
 
-Quoting [Jeff's article][1] once more:
+8 random characters from `a-z` and `0-9` give us around 36 different chars, so:
+
+```
+n! / (n - r)!
+```
+
+where n is the amount of possibilities and n is the amount of samples.
+
+```
+n = 36
+r = 8
+
+36! / (36 - 8)! = 1.220096908𝐸+12
+```
+> [Source][14]
+
+That is, `1 trillion 220 billion 96 million 908 thousand 800`, or if we were have 1000 URLs being created every second, we could go on for almost **40 years** before running out of options.
+
+However, the above is not the **collision probability**, 1 in 1 trillion, given to the [birthday paradox][13] that probability is much lower, since the space of possibilities for URLs is so much broader than 1 trillion.
+
+Even that we could generate more than 1 trillion different hashes, it doesn't ensure we won't hit a collision right from start.
+
+#### Conclusion
+
+Traditional Hashing is not a good alternative, quoting [Jeff's article][1] once more:
 
 > URL shortening services can't rely on traditional hashing techniques
 
-### Scope
+#### What are the alternatives then?
 
-* Generate short links for long URLs.
-* Generate custom links or aliases for long URLs.
-* Extremelly Performant - Accept thousands of writes/reads per second maintaining low latency
-* Extremelly Consistent - Avoid loosing/overriding URLs
+Jeff's article comes to a good conclusion, to create a produciton-grade URL shortener, the short slug can't be the hash of the URL, yet a brute forced sequence of characters that grows in size over time.
 
-What are the alternatives then?
-
+He says:
 > Each new URL gets a unique three character combination until no more are left
 
-https://hashids.org
-
-
-### NanoID
-
-https://github.com/nikolay-govorov/nanoid
-* Safe
-* Compact
-* Fixed Size
-* Problem: URL is still too long, business purpose?
-
-
-It's possible to generate a custom alphabet
 
 ### HashIDs
+
+HashID with
+`36^8` = `2 trillion 821 billion 109 million 907 thousand 456`
+
+https://hashids.org
+https://github.com/nikolay-govorov/nanoid
 
 Best Option:
 - Grows on demand (e.g.: 1 -> a, 1000000 -> aF*_)
@@ -271,3 +290,5 @@ Elm is a functional.
 [10]: http://www.toolsvoid.com/multi-hash-generator
 [11]: https://stackoverflow.com/a/288519
 [12]: https://crypto.stackexchange.com/a/12679
+[13]: https://www.youtube.com/watch?v=KtT_cgMzHx8
+[14]: https://www.calculatorsoup.com/calculators/discretemathematics/permutations.php
