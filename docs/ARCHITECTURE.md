@@ -189,7 +189,6 @@ Jeff's article comes to a good conclusion, to create a produciton-grade URL shor
 He says:
 > Each new URL gets a unique three character combination until no more are left
 
-
 ### HashIDs
 
 HashID with
@@ -197,6 +196,7 @@ HashID with
 
 https://hashids.org
 https://github.com/nikolay-govorov/nanoid
+https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c
 
 Best Option:
 - Grows on demand (e.g.: 1 -> a, 1000000 -> aF*_)
@@ -213,11 +213,13 @@ My main concern:
   - if you reserve a "ID"
   - not possible to claim IDs back?
 
+There are no collisions because the method is based on integer to hex conversion.
+
 https://hashids.org/rust/
 https://github.com/archer884/harsh
 
+### Sequence Generator
 PostgreSQL
-
 
 | Name        | Storage Size | Range                         |
 |-------------|--------------|-------------------------------|
@@ -227,6 +229,7 @@ PostgreSQL
 
 8 * 10M rows = 80MB of ids. which is pretty reasonable.
 
+https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
 ## Capacity Planning
 
 Maximum URL size seems not to be a common agreement over the web, yet, the number that popped up the most was 2048 bytes.
@@ -292,3 +295,4 @@ Elm is a functional.
 [12]: https://crypto.stackexchange.com/a/12679
 [13]: https://www.youtube.com/watch?v=KtT_cgMzHx8
 [14]: https://www.calculatorsoup.com/calculators/discretemathematics/permutations.php
+[15]: https://github.com/marceloboeira/kurz-old
