@@ -53,12 +53,6 @@ A URL Shortener is a service that creates short and easy links from big or compl
   * Short and useful internal links is common in companies with lots of employees. Google uses with `go/`, Airbnb `air/`
   * e.g.: `air/git`, `go/referrals`, `air/payslips`
 
-**Paid alternatives**
-
-* [bit.ly](https://bit.ly) - Paid service, you can use for free with limitations, paid users can also have their own domain, analytics...
-* [tiny.cc](https://bit.ly) - Similar
-* [cutt.ly](https://cutt.ly) - Similar
-
 -------
 
 # Why You Should Create You Own?
@@ -93,6 +87,21 @@ Kurz was born from an idea, an experimental project with a specific stack, but a
 ### Name meaning
 
 **Kurz** - it is the literal translation of **short** to German. [[more][23]]
+
+### Alternatives
+
+As mentioned, `kurz` is an experimental project, the README should contain more info on the project status.
+
+Here are some alternatives to kurz:
+
+* Open Source:
+  * [YOURLS/YOURLS][24]
+  * [thedevs-network/kutt][25]
+  * [cydrobolt/polr][26]
+* Paid alternatives:
+  * [bit.ly](https://bit.ly) - Paid service, you can use for free with limitations, paid users can also have their own domain, analytics...
+  * [tiny.cc](https://bit.ly) - Similar
+  * [cutt.ly](https://cutt.ly) - Similar
 
 ### Goals
 
@@ -412,11 +421,6 @@ https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
 https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c
 https://www.educative.io/collection/page/5668639101419520/5649050225344512/5668600916475904
 
-# Alternatives
-
-* https://github.com/YOURLS/YOURLS
-* https://github.com/thedevs-network/kutt
-* https://github.com/cydrobolt/polr
 
 # Stack
 
@@ -446,6 +450,11 @@ huge operational overhead
 
 Elm is a functional.
 
+
+TODO
+  - Name Origin
+  - URL Redirection Codes 301/302 ...
+
 ---------
 [1]: https://blog.codinghorror.com/url-shortening-hashes-in-practice/
 [2]: https://www.youtube.com/watch?v=JQDHz72OA3c
@@ -469,3 +478,6 @@ Elm is a functional.
 [21]: https://www.postgresql.org/docs/9.5/sql-createsequence.html
 [22]: https://www.postgresql.org/docs/9.1/functions-sequence.html
 [23]: http://www.dict.cc/deutsch-englisch/kurz.html
+[24]: https://github.com/YOURLS/YOURLS
+[25]: https://github.com/thedevs-network/kutt
+[26]: https://github.com/cydrobolt/polr
