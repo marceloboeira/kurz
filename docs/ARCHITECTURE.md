@@ -48,11 +48,11 @@ A URL Shortener is a service that creates short and easy links from big or compl
 
 Mainly, the motivation is learning from the challenges that a URL Shortener can provide.
 
-You can simplify the problem by lowering the requirements, I have [done it myself][9] a while back, it taught me different things at the time as the proprosed challenges were different.
+You can simplify the problem by lowering the requirements, I have [done it myself][9] a while back, it taught me different things at the time as the proprosed challenges were different. I've also had an attempt to make [something a bit faster][15], but with the wrong tools.
 
 As most system-related challenges, by adding scalability and performance as factors, the challenge becomes interesting.
 
-Here are some of the challanges worth exploring:
+Here are some of the challenges worth exploring:
 
 e.g.:
 
@@ -104,11 +104,11 @@ When we think about it, it's mainly a hash-table. A key, value tuple that has th
   * Lookup on a Hash Table
     * `MEd21: https://my-long-link.com/a-very-long/path/with/numbers/90999.html`
 
-However, as [this blogpost][1] from Jeff Atwood states, creating a consistent hashing for this purpose is not a trivial task.
+However, as [this blogpost][1] from Jeff Atwood states: _creating a consistent hashing for this purpose is not a trivial task_.
 
 Let us take a look on how traditional hashing might not be the best idea.
 
-### Traditional Hashing
+#### Traditional Hashing
 
 We could use standard battle-tested hashing algorithms, let us say `MD5` for such purpose.
 
@@ -174,9 +174,9 @@ That is, `1 trillion 220 billion 96 million 908 thousand 800`, or if we were hav
 
 However, the above is not the **collision probability**, 1 in 1 trillion, given to the [birthday paradox][13] that probability is much lower, since the space of possibilities for URLs is so much broader than 1 trillion.
 
-Even that we could generate more than 1 trillion different hashes, it doesn't ensure we won't hit a collision right from start.
+The catch here is that even that we could generate more than 1 trillion different hashes, it would't ensure we would't hit a collision after a few thousand iterations.
 
-#### Conclusion
+## Conclusion
 
 Traditional Hashing is not a good alternative, quoting [Jeff's article][1] once more:
 
@@ -184,7 +184,7 @@ Traditional Hashing is not a good alternative, quoting [Jeff's article][1] once 
 
 #### What are the alternatives then?
 
-Jeff's article comes to a good conclusion, to create a produciton-grade URL shortener, the short slug can't be the hash of the URL, yet a brute forced sequence of characters that grows in size over time.
+Jeff's article comes to a good conclusion, to create a production-grade URL shortener, the short alias can't be the hash of the URL, it rather be a brute forced sequence of characters that grows in size over time.
 
 He says:
 > Each new URL gets a unique three character combination until no more are left
@@ -207,41 +207,49 @@ We could go on and on, until we endup having no more characters left, and we sta
 
 This approach is much simpler and more performatic. Also, this problem is known by other "names". Other people came to the same conclusion and realised this is useful when you want to expose short and easy to memorise IDs, e.g.: booking codes, 1-time tokens,... but also, this problem is similar to the famous "Youtube Video IDs".
 
-All of the because we don't want to expose the sequencial integer identifiers.
+All of that because we don't want to expose the sequencial integer identifiers.
 
 #### Decimal is not safe
 
 The whole point of the "Youtube Way" is that IDs, that are usually integers, follow our standard number system, a decimal (base 10) system.
 
-Every sequence is bound to the size of symbols we use to represent it, its number of characters increases proporcionally to the amount of characters available. For example:
+The decimal system can be unsafe in some ways, because of its predictability, one might easily try to guess "how many videos are on youtube" or even "how many videos are posted every hour on youtube" by simply comparing the IDs of new sample videos posted with 1 hour difference.
 
-* On a base 10 system, we can represent up to 10 different values with a single char, from 0 to 9. The 11th value has to be represented by "10", which uses 2 characters.
+In our scenario, the decimal biggest issue is its representability, it's too big, for 1M URLS we would already be using 6 digits.
 
-* On a alpha-numerical, case sensitive, based system, such as:
+Every sequence is bound to the size of symbols we use to represent it, its number of characters increases proporcionally to the amount of characters available for use. For example:
 
+* On a decimal (base 10) system, we can represent up to 10 different values with a single char, from 0 to 9. The 11th value has to be represented by "10", which uses 2 characters.
+* On a hexadecidemal (base 16) system, we can represent up to 16 different values with a single char, from 0 to F. Here, the 17th value is represented by "10", which uses 2 characters.
+
+* On an alpha-numerical, case sensitive, (base 62), system, we would be able to represent up to **62** different values before having to add a new character.
+
+
+Base62 alphabet:
 ```
 [a-z] + [A-Z] + [0-9]
  26      26       10  =  62
 ```
 
-We would be able to represent up to 62 different values before having to add a new character. Much better, right?
+Much better, right?
 
 We can also add other characters, as we'll see next, but for our purpose is important to [respect URL Safe][16] characters.
 
-### HashIDs
-> Generate short unique ids from integers
+Given this is a recurrent problem with multiple applications, there are several different solutions available on open-source. It varies from [old school PHP solutions from the early 2000s][17] up to modern and safer standards that can be implemented in any language.
 
-HashID's website says:
+### HashID
+
+HashID is one of the standards out there, the most complete I could find. Their [website][18] states:
 
 > Hashids is a small open-source library that generates short, unique, non-sequential ids from numbers.
-> It converts numbers like 347 into strings like “yr8”, or array of numbers like [27, 986] into “3kTMd”.
-> You can also decode those ids back. This is useful in bundling several parameters into one or simply using them as short UIDs.
+
+Let us dive into it.
 
 ##### Base10 to BaseX Convertion
 
-There are 2 main parts to this, HashID basically converts a base 10 number to a base X, where X is the size of the "alphabet" of our base.
+There are 2 main parts to their statement, HashID basically converts a decimal (base 10) number to a base X, where X is the size of the "alphabet" of our alpha-numerical base.
 
-This help us to achieve astronomical numbers of different 8-char strings.
+That help us to achieve **astronomical numbers** of different 8-char strings.
 
 e.g.:
 
@@ -250,13 +258,20 @@ e.g.:
 * `[a-z] + [A-Z] + [0-9] + [$-_.+!*'(),]` (using all URL-safe) = `73 chars` > `73^8` = `806 trillion 460 billion 91 million 894 thousand 81`
 
 
-Following the same analogy as before, with `800 trillion` different permutations, we could generate 10 thousand URLs per second nonstop, and we could go on for almost **2564 years** before running out of options. PS: I think that's more than enough.
+Following the previous analogy for CRC32, with around `800 trillion` different permutations,we could generate **10 thousand URLs** per second nonstop, and we could go on for almost **2564 years** before running out of options.
+
+```
+(73^8)/(10000*60*60*24*7*52)
+```
+> [Source][19]
+
+*I think that's more than enough*.
 
 ##### Salt, Security and Obfuscation
 
-But interestingly enough, we can also provide a Salt, that creates some entropy to the whole operation, making it difficult to try to decode or "guess" the next/previous values, which is important for security measures, but as well give us the possibility to create more obfuscated IDs.
+Interestingly enough, we can also provide a **Salt** to HashID. That creates some entropy to the whole operation, making it difficult to try to decode or "guess" the next/previous values, which is important for security measures, but as well give us the possibility to create more obfuscated IDs.
 
-In simple terms, if we were not using a salt, we would have something like:"
+In simple terms, if we were not using a salt, we would have something like:
 
 ```
 0 - a
@@ -282,32 +297,22 @@ With salt, we can say that the alphabet is like `M$29kJ)...`, which would genera
 and so on...
 ```
 
+Which helps to prevent the predictability but also to have some control and uniqueness across instances of our application. Imagine that 2 different companies are using it, you don't want to generate URLs in the same order. Each company could use their own unique salt.
 
-----------------------
+## TL;DR
 
-
-
-
-Best Option:
-- Grows on demand (e.g.: 1 -> a, 1000000 -> aF*_)
+HashID is the best option so far, since:
 - Consistent (not random)
+- There is no collision probability since it is not a hash
+- Grows on demand
 - Based on a number
 - Offers Salt which provides a nice way to generate unique IDs
 
-My main concern:
+*Okay, be honest, what's the catch?*
 
-1. How to maintain a atomic (across nodes) auto-incremented -> PGSQL Sequences
-2.  How to concilliate Custom URLs with autogenerated by number
+It's not a catch per say, is more like a dependency we need to take into account. HashIDs is require an extremelly consistent **sequence generator**. The integer that gets converted to a "HashId" must be unique always to ensure consistency.
 
-  - if you have an incremental integer ID that you convert to String and you decide to override that string, that number will generate a string that won't be able to generate anymore, so you'll loose such an index.
-  - if you auto generate, you reserve an index
-  - if you reserve a "ID"
-  - not possible to claim IDs back?
-
-There are no collisions because the method is based on integer to hex conversion.
-
-https://hashids.org/rust/
-https://github.com/archer884/harsh
+Let us dive into that too.
 
 ### Sequence Generator
 
@@ -391,3 +396,5 @@ Elm is a functional.
 [15]: https://github.com/marceloboeira/kurz-old
 [16]: https://perishablepress.com/stop-using-unsafe-characters-in-urls/
 [17]: https://kvz.io/blog/2009/06/10/create-short-ids-with-php-like-youtube-or-tinyurl/
+[18]: https://hashids.org/
+[19]: https://www.wolframalpha.com/input/?i=(73%5E8)%2F(10000*60*60*24*7*52)
