@@ -3,6 +3,10 @@
   <p align="center">A URL Shortener so there are no URL Shorteners<p>
 </p>
 
+## Documentation
+
+Strongly recommended to read [ARCHITECTURE.md](ARCHITECTURE.md) to know more about the project's decisions and origins.
+
 ## Endpoints
 
 * `:8000/` - root page, it renders the `dist/index.html`.
