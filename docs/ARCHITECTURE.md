@@ -5,13 +5,30 @@
 
 * [What Is a URL Shortener?](#what-is-a-url-shortener)
 * [Why You Should Create You Own?](#why-you-should-create-you-own)
-* [Goals](#goals)
+* [Kurz](#kurz)
+  * [Goals](#goals)
+    * [Non-Goals](#non-goals)
+  * [Alternatives](#alternatives)
 * [Challenges](#challenges)
   * [Short URL Generation](#short-url-generation)
-  * [Capacity Planning](#capacity-planning)
+    * [Traditional Hashing](#traditional-hashing)
+      * [Idempotency](#idempotency)
+      * [Collision Probabilities](#collision-probabilities)
+      * [Length](#length)
+      * [The Birthday Paradox](#the-birthday-paradox)
+    * [Conclusion](#conclusion)
+      * [What are the alternatives then?](#what-are-the-alternatives-then)
+      * [Decimal is not safe](#decimal-is-not-safe)
+      * [HashID](#hashid)
+        * [TL;DR](#tldr)
+      * [Sequence Generator](#sequence-generator)
+  * [Storage](#storage)
+    * [Schema](#schema)
+    * [Capacity Planning](#capacity-planning)
   * [Performance](#performance)
-* Alternatives
-* Stack
+* [Stack](#stack)
+
+---------------
 
 # What Is a URL Shortener?
 
@@ -69,7 +86,15 @@ e.g.:
 * a reliable database, that can never fail, might be really slow to ensure it will never fail.
 * a long-term file system for backups might have severe capacity or performance limitations given it must copy data multiple times to ensure its durability.
 
-## Goals
+## Kurz
+
+Kurz was born from an idea, an experimental project with a specific stack, but also to be a study project on high-performant and reliable system design exercise.
+
+### Name meaning
+
+**Kurz** - it is the literal translation of **short** to German. [[more][23]]
+
+### Goals
 
 First let us look at the goals, then discuss in depth what are the exact features we'll be focusing on and the challenges they bring.
 
@@ -80,7 +105,7 @@ First let us look at the goals, then discuss in depth what are the exact feature
 
 On that order, we would give up UX or Consitency for Performance and Reliability, for instance. We'll dive into specifics later on.
 
-### Non-Goals
+#### Non-Goals
 
 * User Management - creating different users to own URLs
 * Authentication - creating API specific keys and authentication
@@ -363,8 +388,10 @@ Let us look on how our storage structure will look like to understand more about
 
 ## Storage
 
+### Schema
 
-## Capacity Planning
+
+### Capacity Planning
 
 Maximum URL size seems not to be a common agreement over the web, yet, the number that popped up the most was 2048 bytes.
 
@@ -441,3 +468,4 @@ Elm is a functional.
 [20]: https://en.wikipedia.org/wiki/Single_point_of_failure
 [21]: https://www.postgresql.org/docs/9.5/sql-createsequence.html
 [22]: https://www.postgresql.org/docs/9.1/functions-sequence.html
+[23]: http://www.dict.cc/deutsch-englisch/kurz.html
