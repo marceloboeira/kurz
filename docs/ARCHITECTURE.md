@@ -316,7 +316,21 @@ Let us dive into that too.
 
 ### Sequence Generator
 
-PostgreSQL
+There are several ways of implementing an extremelly consistent sequence generators, it will always depend on the type of system you are building and the type of dependencies you want to have. We could implement it with a simple file, with a volatile in-memory record or bring dependencies that deal with that on a more distributed way.
+
+Being more realistic in regards to the current requirements, we can discard file or in-memory options because of the amount of effort on implementing them, sort of re-inventing the wheel there. Options like Redis are interesting because they are indeed consistent, but they are somewhere limited in regards to disk-persistency and clustering...
+
+On our day-jobs we use databases for a lot of things, and most of those things have an ID column, that is most of the times a simple sequence. We could just use that!
+
+The auto-incremental values is exatcly what we need. Adding to that, databases such as PostgreSQL and MySQL have years of battle tested clustering options, preventing us from falling into a [Single Point of Failure][20].
+
+Also, when we think about it, we need to store the data or the URL and its shortlink somewhere, so a database of some sort would endup being a requirement anyway. The requirements for our storage layer would be quite similar too, consistency and clustering to avoid SPOF.
+
+### PostgreSQL Sequences
+
+PostgreSQL has a nice way of creating and managing custom sequences with different costs and benetifs associated to it.
+
+There are 3 types of sequences, e.g.:
 
 | Name        | Storage Size | Range                         |
 |-------------|--------------|-------------------------------|
@@ -324,9 +338,31 @@ PostgreSQL
 | SERIAL      | 4 bytes      | 1 to 2,147,483,647            |
 | BIGSERIAL   | 8 bytes      | 1 to 922,337,2036,854,775,807 |
 
-8 * 10M rows = 80MB of ids. which is pretty reasonable.
+We would go for the last one, even though its storage cost is bigger, it gives us room to eventually explore the full-space of URLs, and many many more to come.
 
-https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
+It's important to understand that the sequence management is not going to be directly related to the schema management, meaning the tables and storage per say.
+
+We'll likely use PostgreSQL functions to manage the sequence and avoid storing both the integer counter and the string alias version, it would be unnecessary redundancy.
+
+The way you operate a sequence is by using Postgres [create sequence][21] function, e.g.:
+
+```sql
+create sequence kurz_sequence;
+```
+
+And then operate it by deciding when we need to [increment and get the next value][22], e.g.:
+
+```sql
+select nextval('kurz_sequence');
+ nextval
+---------
+       1
+```
+
+Let us look on how our storage structure will look like to understand more about it.
+
+## Storage
+
 
 ## Capacity Planning
 
@@ -338,10 +374,14 @@ Source: http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
 Long URL: 2048
 Short URL: from 1 up to 20 (Let's take 15 as a good compromise)
 
+In disk space, having 10M I
+8 * 10M rows = 80MB of ids. which is pretty reasonable.
+
 
 https://mb7.c/a7lLaKc72Has
 
 
+https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
 https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c
 https://www.educative.io/collection/page/5668639101419520/5649050225344512/5668600916475904
 
@@ -398,3 +438,6 @@ Elm is a functional.
 [17]: https://kvz.io/blog/2009/06/10/create-short-ids-with-php-like-youtube-or-tinyurl/
 [18]: https://hashids.org/
 [19]: https://www.wolframalpha.com/input/?i=(73%5E8)%2F(10000*60*60*24*7*52)
+[20]: https://en.wikipedia.org/wiki/Single_point_of_failure
+[21]: https://www.postgresql.org/docs/9.5/sql-createsequence.html
+[22]: https://www.postgresql.org/docs/9.1/functions-sequence.html
