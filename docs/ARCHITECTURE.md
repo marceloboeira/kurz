@@ -25,7 +25,11 @@
   * [Storage](#storage)
     * [Schema](#schema)
     * [Capacity Planning](#capacity-planning)
+      * [Final Estimates](#final-estimates)
+        * [Storage Estimate](#storage-estimate)
+        * [Cache Estimate](#cache-estimate)
   * [Performance](#performance)
+    * [Design](#design)
 * [Stack](#stack)
 
 ---------------
@@ -397,30 +401,95 @@ Let us look on how our storage structure will look like to understand more about
 
 ## Storage
 
+One of the most important and challenging aspects of the whole project is how to efficiently store and still keep it flexible since we want to be able to built something with a good UX for people hosting it. Even though there are a lot of good reasons to go with a NoSQL databse, Postgres provide us with useful features such as the sequence generator, maturity, and battle tested tooling and consistency.
+
+Kurz is supposed to be easy to run, having complex dependencies could interfere with that goal.
+
 ### Schema
 
+There are two main things which we definitely need to store, the long-url and the our encoded short alias. Those are both text or string like fields, and for flexibility we might want to store the creation `timestamp`.
+
+Let's create a simple sketch of how the schema will look like, and dive into what types we should use for each field.
+
+TODO: Explain Expiration
+
+| Field      | Type      |
+|------------|-----------|
+| short      | text      |
+| url        | text      |
+| created_at | timestamp |
+| expired_at | timestamp |
+
+In order to choose database types we need now to understand the database ones, their trade-offs, evaluating their size and performance implications.
 
 ### Capacity Planning
 
-Maximum URL size seems not to be a common agreement over the web, yet, the number that popped up the most was 2048 bytes.
+The capacity planning is utterly important here, it will be proportional to your write-traffic. Therefore, it's important to have ideas of how much space is required to store X amount of URLs.
+
+The largest field in size is the full URL, where it's important to be flexible on size, given the web big spectrum on URLs. The maximum URL size seems not to be a common agreement over the web, yet, the number that popped up the most was 2048 bytes.
 
 > The HTTP protocol does not place any a priori limit on the length of a URI. Servers MUST be able to handle the URI of any resource they serve, and SHOULD be able to handle URIs of unbounded length if they provide GET-based forms that could generate such URIs. A server SHOULD return 414 (Request-URI Too Long) status if a URI is longer than the server can handle (see section 10.4.15).
 Source: http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
 
-Long URL: 2048
-Short URL: from 1 up to 20 (Let's take 15 as a good compromise)
+For the Short URL there is a big compromise. Naively, you can thing of it as having the maximum size of your short urls, but it would be limiting to us when trying to create custom URLs, as dicussed before.
 
-In disk space, having 10M I
-8 * 10M rows = 80MB of ids. which is pretty reasonable.
+e.g.:
 
+`krz.io/my-creative-big-alias` has 21 characters.
 
-https://mb7.c/a7lLaKc72Has
+Given the large variety of URL sizes, and [how limited-sized text fields work on postgres][28], the `text` field type on Postgres seems to be the best suited type at this point.
 
+Some assumptions:
+* `short` - varies from 1 to N chars, we can assume that on average we would have mainly 5 bytes for a long time.
+* `url` - varies a lot, up to 2048 chars but let's assume an average of 256 chars as a good compromise.
+* `created_at`, `expired_at` - 8 bytes each by default.
 
-https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
-https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c
-https://www.educative.io/collection/page/5668639101419520/5649050225344512/5668600916475904
+e.g.:
+*  a 247 long url looks like this: `http://chart.apis.google.com/chart?chs=500x500&chma=0,0,100,100&cht=p&chdl=android%7Cjava%7Cstack-trace%7Cbroadcastreceiver%7Candroid-ndk%7Cuser-agent%7Candroid-webview%7Cwebview%7Cbackground%7Cmultithreading%7Candroid-source%7Csms%7Cadb%7Csollections%7Cactivity`
+* a 5 bytes long short version could be like `https://krz.io/Mb99x`, the first 2 billion short urls can be generated with up to 5 characters.
 
+At the end, all of our text types are variable, we can have some simple math to have the order of magnitude of our database depending on our monthly traffic.
+
+| Field      | Type      | Size               | Reference                                           |
+|------------|-----------|--------------------|-----------------------------------------------------|
+| short      | text      | 5 bytes (on avg)   |  [Analysis Text vs Char][28], [Postgres Manual][29] |
+| url        | text      | 256 bytes (on avg) |  [Analysis Text vs Char][28], [Postgres Manual][29] |
+| created_at | timestamp | 8 bytes            |  [Postgres Manual][27]                              |
+| expired_at | timestamp | 8 bytes            |  [Postgres Manual][27]                              |
+
+### Final Estimates
+
+#### Storage Estimate
+
+At the end, our **avg row size** is around (5 + 256 + 8 + 8) = 277 bytes.
+
+Estimating a traffic of 100M URLs shortned every month, which is roughly around ~50 write req/s.
+
+```
+((100M URLs * 277 bytes) / (1024^3)) * 1.2 ~= 30GB
+```
+
+Where `1024^3` is the conversion from bytes to GB, and 20% of error-room on the estimation, leading us to around 30GB per month. Assuming we will run the system for more than a month, let us say, 5 years, we could expect:
+
+```
+(30GB * 12 months) * 5 years ~= 1.8TB
+```
+
+1.8TB, pretty reasonable, considering we would be storing up to **6 Billion** URLs over the course of those 5 years.
+
+#### Cache Estimate
+
+Expecting a `100:1` read-write ratio, meaning that each URL create would have around 100 clicks on average, we would be expecting 5000 read req/s.
+
+With 5k req/s we would be getting around ~500M read requests a day. Considering we don't want to explode our SQL database with read queries, we might want to have a in-memory cache to take the big hit, considering a 60% cache hit for our URLs, given they are quite seasonal, we can calculate how much memory we need on that cache.
+
+```
+(((500M reads * 0.6 (60% cache)) * 277) / 1024^3) ~= 80GB
+```
+
+Around 80GB of in-memory cache to support our read-load gracefully.
+
+**Note** - the estimates are quite high-level, for demonstration purposes.
 
 # Stack
 
@@ -481,3 +550,6 @@ TODO
 [24]: https://github.com/YOURLS/YOURLS
 [25]: https://github.com/thedevs-network/kutt
 [26]: https://github.com/cydrobolt/polr
+[27]: https://www.postgresql.org/docs/9.1/datatype-datetime.html
+[28]: https://www.depesz.com/2010/03/02/charx-vs-varcharx-vs-varchar-vs-text/
+[29]: https://www.postgresql.org/docs/9.1/datatype-character.html
