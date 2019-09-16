@@ -111,12 +111,13 @@ Here are some alternatives to kurz:
 
 First let us look at the goals, then discuss in depth what are the exact features we'll be focusing on and the challenges they bring.
 
-* Reliability - Low percentage of failures when reading/writing/redirecting. e.g.: what if the database goes down?
 * Performance - Fast redirects/reads/writes. e.g.: how fast URL redirection takes?
+* Scalability - Ease of scaling reads/writes by adding more instances
 * Consistency - Short URLs can't be overriden by new URLs. e.g.: hash collisions.
-* UX - Simple to host, to use, and to scale.
+* UX - Simple to host, to use.
+* Reliability - Low percentage of failures when reading/writing/redirecting. e.g.: what if the database goes down?
 
-On that order, we would give up UX or Consitency for Performance and Reliability, for instance. We'll dive into specifics later on.
+We'll dive into specifics later on.
 
 #### Non-Goals
 
@@ -491,6 +492,11 @@ Around 80GB of in-memory cache to support our read-load gracefully.
 
 **Note** - the estimates are quite high-level, for demonstration purposes.
 
+## Performance
+
+### Design
+
+###
 # Stack
 
 ## Backend: Rust
