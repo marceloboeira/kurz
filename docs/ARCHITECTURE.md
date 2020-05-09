@@ -111,10 +111,10 @@ Here are some alternatives to kurz:
 
 First let us look at the goals, then discuss in depth what are the exact features we'll be focusing on and the challenges they bring.
 
+* UX - Simple to host, to use, and to scale.
 * Reliability - Low percentage of failures when reading/writing/redirecting. e.g.: what if the database goes down?
 * Performance - Fast redirects/reads/writes. e.g.: how fast URL redirection takes?
 * Consistency - Short URLs can't be overriden by new URLs. e.g.: hash collisions.
-* UX - Simple to host, to use, and to scale.
 
 On that order, we would give up UX or Consitency for Performance and Reliability, for instance. We'll dive into specifics later on.
 
